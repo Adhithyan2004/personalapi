@@ -1,0 +1,29 @@
+users
+------
+id (PK)
+name
+email (unique)
+password_hash
+created_at
+updated_at
+
+
+applications
+-------------
+id (PK)
+user_id (FK -> users.id)
+company_name
+role
+current_status   <-- optional but recommended (more on this below)
+applied_date
+created_at
+updated_at
+
+application_status_history
+---------------------------
+id (PK)
+application_id (FK -> applications.id)
+status
+changed_at
+changed_by (optional, if admin system exists)
+note (optional)
