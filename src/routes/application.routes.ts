@@ -1,4 +1,3 @@
-// routes/application.routes.ts
 
 import express from "express";
 import { createApplication, updateApplicationStatus } from "../services/application.service";

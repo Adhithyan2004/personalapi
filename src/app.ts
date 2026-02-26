@@ -1,14 +1,19 @@
 import express from "express";
 import { prisma } from "./lib/prisma";
 import applicationRoutes from "./routes/application.routes";
-
+import authRoutes from "./routes/auth.routes";
+import cookieParser from "cookie-parser";
+import helmet from "helmet";
 
 const app = express();
 
 app.use(express.json());
+app.use(cookieParser());
+app.use(helmet());
 
 // Moduled routes
 app.use("/applications", applicationRoutes);
+app.use("/auth",authRoutes);
 
 // Server Check
 app.get('/',(req,res)=>{
