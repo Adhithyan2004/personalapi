@@ -1,8 +1,11 @@
 import express from "express";
 import { registerUser, loginUser } from "../services/auth.service";
 import { authenticate } from "../middleware/auth.middleware";
+import jwt from "jsonwebtoken";
+import {prisma} from "../lib/prisma";
 
 const router = express.Router();
+
 
 router.post("/signup", async (req, res) => {
   try {
@@ -27,28 +30,45 @@ router.post("/login", async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    const token = await loginUser(email, password);
+    const { accessToken, refreshToken } = await loginUser(email, password);
 
-    res.cookie("token", token, {
-      httpOnly: true,
-      secure: false, // true in production
-      sameSite: "lax",
-      maxAge: 7 * 24 * 60 * 60 * 1000 // cookies expire after 7 days
-    });
+// setting both access and refresh token in cookies (safer instead of localstorage)
+res.cookie("accessToken", accessToken, {
+  httpOnly: true,
+  secure: false,
+  sameSite: "lax",
+  maxAge: 15 * 60 * 1000 // 15 mins
+});
 
-    res.json({ message: "Login successful" });
+res.cookie("refreshToken", refreshToken, {
+  httpOnly: true,
+  secure: false,
+  sameSite: "lax",
+  maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
+});
+
+res.json({ message: "Login successful" });
+
   } catch (error: any) {
     res.status(401).json({ message: error.message });
   }
 });
 
-router.post("/logout",(req,res) =>{
-    res.clearCookie("token",{
-        httpOnly : true,
-        secure:false,
-        sameSite:"lax"
+
+router.post("/logout", async (req, res) => {
+  const refreshToken = req.cookies.refreshToken;
+
+  if (refreshToken) {
+    await prisma.user.updateMany({
+      where: { refreshToken },
+      data: { refreshToken: null }
     });
-    res.json({message:"Logged out successfully"});
+  }
+
+  res.clearCookie("accessToken");
+  res.clearCookie("refreshToken");
+
+  res.json({ message: "Logged out successfully" });
 });
 
 // sample protected route (for checking purpose will remove 
@@ -58,6 +78,47 @@ router.get("/me",authenticate,async(req,res) =>{
         message : "You are authenticated",
         userId:(req as any).userId
     });
+});
+
+router.post("/refresh", async (req, res) => {
+  const refreshToken = req.cookies.refreshToken;
+
+  if (!refreshToken) {
+    return res.status(401).json({ message: "Refresh token missing" });
+  }
+
+  try {
+    const decoded = jwt.verify(
+      refreshToken,
+      process.env.JWT_REFRESH_SECRET as string
+    ) as { userId: string };
+
+    const user = await prisma.user.findUnique({
+      where: { id: decoded.userId }
+    });
+
+    if (!user || user.refreshToken !== refreshToken) {
+      return res.status(403).json({ message: "Invalid refresh token" });
+    }
+
+    const newAccessToken = jwt.sign(
+      { userId: user.id },
+      process.env.JWT_SECRET as string,
+      { expiresIn: "15m" }
+    );
+
+    res.cookie("accessToken", newAccessToken, {
+      httpOnly: true,
+      secure: false,
+      sameSite: "lax",
+      maxAge: 15 * 60 * 1000
+    });
+
+    res.json({ message: "Access token refreshed" });
+
+  } catch {
+    res.status(403).json({ message: "Invalid refresh token" });
+  }
 });
 
 export default router; 

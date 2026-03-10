@@ -6,10 +6,10 @@ export const authenticate = (
   res: Response,
   next: NextFunction
 ) => {
-  const token = req.cookies.token;
+  const token = req.cookies.accessToken;
 
   if (!token) {
-    return res.status(401).json({ message: "Token not found in the cookie" });
+    return res.status(401).json({ message: "Token not found in cookie" });
   }
 
   try {

@@ -8,8 +8,8 @@ import helmet from "helmet";
 const app = express();
 
 app.use(express.json());
-app.use(cookieParser());
-app.use(helmet());
+app.use(cookieParser()); //For proper cookie parsing as json
+app.use(helmet()); //Provide some rules that avoids some web attacks ensuing more security
 
 // Moduled routes
 app.use("/applications", applicationRoutes);

@@ -28,6 +28,8 @@ export const registerUser = async (
   return user;
 };
 
+
+
 export const loginUser = async (email: string, password: string) => {
   const user = await prisma.user.findUnique({
     where: { email }
@@ -43,11 +45,23 @@ export const loginUser = async (email: string, password: string) => {
     throw new Error("Wrong password");
   }
 
-  const token = jwt.sign(
+  const accessToken = jwt.sign(
     { userId: user.id },
     process.env.JWT_SECRET as string,
-    { expiresIn: "7d" } 
+    { expiresIn: "15m" }
   );
 
-  return token;
+  const refreshToken = jwt.sign(
+    { userId: user.id },
+    process.env.JWT_REFRESH_SECRET as string,
+    { expiresIn: "7d" }
+  );
+
+  // store refresh token in DB
+  await prisma.user.update({
+    where: { id: user.id },
+    data: { refreshToken }
+  });
+
+  return { accessToken, refreshToken };
 };
