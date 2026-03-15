@@ -1,7 +1,6 @@
 import express from "express";
-import { registerUser, loginUser } from "../services/auth.service";
+import { registerUser, loginUser,refreshAccessToken } from "../services/auth.service";
 import { authenticate } from "../middleware/auth.middleware";
-import jwt from "jsonwebtoken";
 import {prisma} from "../lib/prisma";
 
 const router = express.Router();
@@ -88,24 +87,7 @@ router.post("/refresh", async (req, res) => {
   }
 
   try {
-    const decoded = jwt.verify(
-      refreshToken,
-      process.env.JWT_REFRESH_SECRET as string
-    ) as { userId: string };
-
-    const user = await prisma.user.findUnique({
-      where: { id: decoded.userId }
-    });
-
-    if (!user || user.refreshToken !== refreshToken) {
-      return res.status(403).json({ message: "Invalid refresh token" });
-    }
-
-    const newAccessToken = jwt.sign(
-      { userId: user.id },
-      process.env.JWT_SECRET as string,
-      { expiresIn: "15m" }
-    );
+    const newAccessToken = await refreshAccessToken(refreshToken);
 
     res.cookie("accessToken", newAccessToken, {
       httpOnly: true,
@@ -116,8 +98,8 @@ router.post("/refresh", async (req, res) => {
 
     res.json({ message: "Access token refreshed" });
 
-  } catch {
-    res.status(403).json({ message: "Invalid refresh token" });
+  } catch (error: any) {
+    res.status(403).json({ message: error.message });
   }
 });
 

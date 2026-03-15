@@ -29,6 +29,30 @@ export const registerUser = async (
 };
 
 
+export const refreshAccessToken = async (refreshToken: string) => {
+
+  const decoded = jwt.verify(
+    refreshToken,
+    process.env.JWT_REFRESH_SECRET as string
+  ) as { userId: string };
+
+  const user = await prisma.user.findUnique({
+    where: { id: decoded.userId }
+  });
+
+  if (!user || user.refreshToken !== refreshToken) {
+    throw new Error("Invalid refresh token");
+  }
+
+  const newAccessToken = jwt.sign(
+    { userId: user.id },
+    process.env.JWT_SECRET as string,
+    { expiresIn: "15m" }
+  );
+
+  return newAccessToken;
+};
+
 
 export const loginUser = async (email: string, password: string) => {
   const user = await prisma.user.findUnique({
