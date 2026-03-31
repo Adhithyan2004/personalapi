@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
 
+
 export const authenticate = (
   req: Request,
   res: Response,
@@ -18,7 +19,7 @@ export const authenticate = (
       process.env.JWT_SECRET as string
     ) as { userId: string };
 
-    (req as any).userId = decoded.userId;
+    req.userId = decoded.userId;
 
     next();
   } catch {

@@ -1,7 +1,10 @@
 import express from "express";
-
 import { authenticate } from "../middleware/auth.middleware";
-import { signupController,loginController, logoutContoller, refreshController } from "../controllers/auth.controller";
+import { 
+    signupController,
+    loginController, 
+    logoutContoller, 
+    refreshController } from "../controllers/auth.controller";
 
 const router = express.Router();
 
@@ -13,6 +16,10 @@ router.post("/login", loginController);
 router.post("/logout", logoutContoller)
 
 router.post("/refresh", refreshController);
+
+
+
+
 
 
 // sample protected route (for checking purpose will remove 
