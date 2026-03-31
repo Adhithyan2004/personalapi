@@ -1,35 +1,21 @@
 
 import express from "express";
-import { createApplication, updateApplicationStatus } from "../services/application.service";
-import { ApplicationStatus } from "@prisma/client";
+import { authenticate } from "../middleware/auth.middleware";
+import { applicationController, 
+    applicationUpdateController,
+    getAllApplicationContoller } from "../controllers/application.controller";
+
+
 
 const router = express.Router();
 
+
 // Create application
-router.post("/", async (req, res) => {
-  const { userId, companyName, role, appliedDate } = req.body;
+router.post("/", authenticate,applicationController);
 
-  const application = await createApplication(
-    userId,
-    companyName,
-    role,
-    new Date(appliedDate)
-  );
-
-  res.json(application);
-});
+router.get('/',authenticate, getAllApplicationContoller);
 
 // Update status
-router.patch("/:id/status", async (req, res) => {
-  const { status, note } = req.body;
-
-  const updated = await updateApplicationStatus(
-    req.params.id,
-    status as ApplicationStatus,
-    note
-  );
-
-  res.json(updated);
-});
+router.patch("/:id/status",authenticate, applicationUpdateController);
 
 export default router;

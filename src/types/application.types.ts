@@ -1,12 +1,11 @@
- type ApplicationStatus =
-  | "applied"
-  | "interview"
-  | "offer"
-  | "rejected"
-  | "ghosted";
+import { ApplicationStatus } from "@prisma/client";
 
-  interface ApplicationBody {
-  company: string;
+  export interface ApplicationBody {
+  companyName: string;
   role: string;
-  status: ApplicationStatus;
+  }
+
+  export interface UpdateApplicationStatusHistort {
+    status : ApplicationStatus;
+    note?:string;
   }
