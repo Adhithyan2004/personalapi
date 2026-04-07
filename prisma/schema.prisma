@@ -16,6 +16,13 @@ enum ApplicationStatus {
   GHOSTED
 }
 
+enum ExperienceLevel {
+  INTERN
+  JUNIOR
+  MID
+  SENIOR
+} 
+
 model User {
   id            String        @id @default(uuid())
   name          String
@@ -34,6 +41,7 @@ model Application {
   companyName     String
   role            String
   currentStatus   ApplicationStatus
+  experienceLevel ExperienceLevel?
   appliedDate     DateTime
   statusHistory   ApplicationStatusHistory[]
   createdAt       DateTime                   @default(now())
