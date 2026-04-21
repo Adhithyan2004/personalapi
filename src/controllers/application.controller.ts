@@ -25,7 +25,7 @@ export const applicationController = async(
         }
     };
 
-export const applicationUpdateController = async(
+export const applicationUpdateStatusController = async(
     req:Request<{},{},UpdateApplicationStatusHistort>,
     res:Response) => {
         try{ const { status, note } = req.body;
@@ -47,9 +47,62 @@ export const applicationUpdateController = async(
 export const getAllApplicationContoller = async(req:Request,res:Response) =>{
     
   try {
-    const applications = await prisma.application.findMany();
+    const userId = req.userId;
+    const applications = await prisma.application.findMany({
+        where : {userId},
+    });
     res.status(200).json(applications);
-  } catch (error) {
-    res.status(500).json({ message: 'Failed to fetch applications', error: error });
+  } catch (error:  any) {
+    res.status(500).json({ message: 'Failed to fetch applications', error: error.message });
   }
 }
+
+export const getSingleApplicationContoller = async(req:Request,res:Response) =>{
+    try{
+        const {id} = req.params
+
+        const application = await prisma.application.findUnique({
+            where : {id : id as string}
+        });
+
+        if(!application){
+            return res.status(404).json({message : 'Application not found'});
+        }
+        res.status(200).json(application);
+    }
+    catch(error:any){
+        res.status(500).json({message : 'failed to fetch application',error:error.message})
+    }   
+}
+
+export const deleteApplicationController = async(req:Request,res:Response) => {
+    try{
+        const userId = req.userId;
+        const applicationId = req.params.id as string;
+
+        const application = await prisma.application.findFirst({
+            where: {
+                id: applicationId,
+                userId: userId,
+            },
+        });
+        if(!application){
+            return res.status(404).json({message: "Application not found"});
+        }
+
+         await prisma.application.delete({
+      where: {
+        id: applicationId,
+      },
+    });
+
+    res.status(200).json({ message: "Application deleted successfully" });
+
+    }
+    catch(error:any){
+        res.status(500).json({
+            message: "Failed to delete Application",
+            error : error.message,
+        });
+    }
+};
