@@ -4,7 +4,8 @@ import {
     signupController,
     loginController, 
     logoutContoller, 
-    refreshController } from "../controllers/auth.controller";
+    refreshController,
+    deleteUserController } from "../controllers/auth.controller";
 
 const router = express.Router();
 
@@ -17,8 +18,7 @@ router.post("/logout", logoutContoller)
 
 router.post("/refresh", refreshController);
 
-
-
+router.delete("/:id",deleteUserController);
 
 
 

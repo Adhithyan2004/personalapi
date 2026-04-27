@@ -103,3 +103,29 @@ export const refreshController = async(req:Request,res:Response) =>{
     res.status(403).json({ message: error.message });
   }
 }
+
+export const deleteUserController = async(req:Request,res:Response) =>{
+  try{
+    const userId = req.params.id as string;
+
+    if(!userId){
+      return res.status(404).json({message: "User not found"});
+    }
+
+    await prisma.user.delete({
+      where: {
+        id: userId
+      },
+    });
+ 
+    res.clearCookie("accessToken");
+    res.clearCookie("refreshToken");
+    
+    return res.status(200).json({
+      message: "User deleted successfully",
+    });
+  }
+  catch(error:any){
+    res.status(500).json({message: "Failed to delete user"});
+  }
+};
