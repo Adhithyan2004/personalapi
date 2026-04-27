@@ -48,6 +48,7 @@ export const getAllApplicationContoller = async(req:Request,res:Response) =>{
     
   try {
     const userId = req.userId;
+    // #TODO Move services separately
     const applications = await prisma.application.findMany({
         where : {userId},
     });
@@ -60,7 +61,7 @@ export const getAllApplicationContoller = async(req:Request,res:Response) =>{
 export const getSingleApplicationContoller = async(req:Request,res:Response) =>{
     try{
         const {id} = req.params
-
+         // #TODO Move services separately
         const application = await prisma.application.findUnique({
             where : {id : id as string}
         });
@@ -90,12 +91,18 @@ export const deleteApplicationController = async(req:Request,res:Response) => {
             return res.status(404).json({message: "Application not found"});
         }
 
+        await prisma.applicationStatusHistory.deleteMany({
+            where: {
+                applicationId: applicationId
+            },
+        });
+
          await prisma.application.delete({
       where: {
         id: applicationId,
       },
     });
-
+ 
     res.status(200).json({ message: "Application deleted successfully" });
 
     }

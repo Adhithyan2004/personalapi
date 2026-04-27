@@ -17,7 +17,7 @@ app.use("/auth",authRoutes);
 
 // Server Check
 app.get('/',(req,res)=>{
-    res.json("Server running mamae");
+    res.json({message: "Server running mamae"});
 });
 
 // DB helath endpoint
